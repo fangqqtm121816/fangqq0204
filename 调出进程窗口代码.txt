@@ -1,0 +1,80 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Runtime.InteropServices;
+using System.Threading;
+
+
+namespace WinApiTestApp01
+{
+
+    public partial class Form1 : Form
+    {
+        private const int GWL_STYLE = -16;
+        private const int WS_CHILD = 0x40000000;
+        public const int WM_CHAR = 256;
+        [DllImportAttribute("user32.dll", EntryPoint = "MoveWindow")]
+        public static extern bool MoveWindow(System.IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
+        [DllImportAttribute("user32.dll", EntryPoint = "SetParent")]
+        public static extern int SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
+        [DllImport("user32.dll", EntryPoint = "GetWindowLong")]
+        public static extern int GetWindowLong(IntPtr hwnd, int nIndex);
+        [DllImport("user32.dll", EntryPoint = "SetWindowLong")]
+        public static extern int SetWindowLong(IntPtr hwnd, int nIndex, int dwNewLong);
+        [DllImport("user32.dll", EntryPoint = "PostMessageA", SetLastError = true)]
+        public static extern int PostMessage(IntPtr hWnd, int Msg, Keys wParam, int lParam);
+
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+       static System.Diagnostics.Process Proc = new System.Diagnostics.Process();
+  
+        private void Openbutton_Click(object sender, EventArgs e)
+        {
+            //System.Diagnostics.Process Proc = new System.Diagnostics.Process();
+            Proc.StartInfo.FileName = "D:\\Program Files (x86)\\Audacity\\audacity.exe";
+            Proc.StartInfo.CreateNoWindow = false;
+            Proc.StartInfo.UseShellExecute = false;
+            Proc.StartInfo.RedirectStandardOutput = true;
+            Proc.StartInfo.RedirectStandardInput = true;
+            Proc.Start();
+            Thread.Sleep(1000);//»√≥Ã–ÚÕ£“ªª·  
+            string str = Proc.MainWindowHandle.ToString();
+            //MessageBox.Show(str);
+            while (Proc.MainWindowHandle.ToString() == "0")
+            {
+                Thread.Sleep(500);
+            }
+            var s = GetWindowLong(Proc.MainWindowHandle, GWL_STYLE);
+            SetWindowLong(Proc.Handle, GWL_STYLE, s | WS_CHILD);
+            SetParent(Proc.MainWindowHandle, textBox1.Handle);
+            MoveWindow(Proc.MainWindowHandle, 0, 0, textBox1.Width, textBox1.Height, true);
+            
+        }
+
+        private void Cancelbutton_Click(object sender, EventArgs e)
+        {
+            //Proc.Start();
+            PostMessage(Proc.MainWindowHandle, 256, Keys.D, 1);
+            MakeSure makeSure = new MakeSure();
+            makeSure.ShowDialog();
+            if (makeSure.nresult == 0)
+            {
+                PostMessage(Proc.MainWindowHandle, 0x0104, Keys.S, 1);
+            }
+            else
+            {
+                PostMessage(Proc.MainWindowHandle, 0x0104, Keys.S, 1);
+            }
+
+        }
+    }
+}
